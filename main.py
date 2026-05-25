@@ -1,17 +1,16 @@
 from fastapi import FastAPI
 from src.utils.db import engine, Base
+from src.task.model import Task
+from src.task.routers import router
 
 
-app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
+app = FastAPI()
+app.include_router(task_router())
 
-@app.get('/health')
-def read_root():
-    return {"Hello": "World"}
-
-
+    
 
 if __name__ == '__main__':
     import uvicorn
