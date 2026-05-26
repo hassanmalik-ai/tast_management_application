@@ -1,6 +1,8 @@
-def create_task(title, description, status):
-    return {
-        "title": title,
-        "description": description,
-        "status": status
-    }
+from src.task.dtos import TaskSchema
+
+def create_task(body:TaskSchema):
+    print(body)
+    return {"message": "Task created successfully"}
+    
+
+    

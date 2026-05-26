@@ -4,9 +4,9 @@ from src.utils.settings import settings
 
 
 Base = declarative_base()
-DB_CONNECTION=settings.DB_CONNECTION
-engine = create_engine(DB_CONNECTION)
-SessionLocal = sessionmaker(bind=engine)
+DB_CONNECTION = settings.DB_CONNECTION
+engine = create_engine(DB_CONNECTION, echo=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_session():
     session = SessionLocal()

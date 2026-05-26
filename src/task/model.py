@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from src.utils.db import Base
 
 class Task(Base):
@@ -6,5 +6,4 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     description = Column(String(255), nullable=True)
-    status = Column(String(255), nullable=False)
-
+    status = Column(Boolean, default=False)
