@@ -9,4 +9,4 @@ router = APIRouter(prefix="/tasks")
 
 @router.post('/create')
 def create_task(body:TaskSchema):
-    return controller.create_task(body.title , body.description , body.status)
+    return controller.create_task(body)

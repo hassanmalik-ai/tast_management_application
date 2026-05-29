@@ -2,9 +2,6 @@ from fastapi import FastAPI
 from src.utils.db import engine, Base
 from src.task.model import Task
 from src.task.routers import router
-from src.utils.db import get_session
-from src.task.dtos import TaskSchema
-from src.task.controller import create_task
 
 
 
