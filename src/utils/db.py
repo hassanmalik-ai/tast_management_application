@@ -5,10 +5,10 @@ from src.utils.settings import settings
 
 Base = declarative_base()
 DB_CONNECTION = settings.DB_CONNECTION
-engine = create_engine(DB_CONNECTION, echo=True)
+engine = create_engine(DB_CONNECTION)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_session():
+def get_db():
     session = SessionLocal()
     try:
         yield session
