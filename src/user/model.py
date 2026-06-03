@@ -9,5 +9,3 @@ class User(Base):
     email = Column(String(255), nullable=False)
     phone = Column(String(255), nullable=False)
     hash_password = Column(String(255), nullable=False)
-
-

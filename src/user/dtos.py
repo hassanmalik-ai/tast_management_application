@@ -4,6 +4,12 @@ class User_Schema(BaseModel):
     name: str
     username: str
     email: str
-    phone: int
+    phone: str
     password: str
+    
+class User_Response_Schema(BaseModel):
+    name: str
+    username: str
+    email: str
+    phone: str
     
