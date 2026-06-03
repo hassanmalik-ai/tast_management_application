@@ -7,3 +7,5 @@ class Task(Base):
     title = Column(String(255), nullable=False)
     description = Column(String(255), nullable=True)
     status = Column(Boolean, default=False)
+
+
