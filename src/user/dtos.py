@@ -13,3 +13,9 @@ class User_Response_Schema(BaseModel):
     email: str
     phone: str
     
+
+class Login_Schema(BaseModel):
+    username: str
+    password: str
+
+    

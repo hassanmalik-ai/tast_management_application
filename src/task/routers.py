@@ -4,13 +4,13 @@ from src.task.dtos import TaskSchema,UpdateTaskSchema
 from src.task.model import Task
 from src.utils.db import get_db
 from typing import List
-from sqlalchemy.orm import Session
+from src.task import controller
 
 
 router = APIRouter(prefix="/tasks")
 
 
-@router.post('/create',response_model=list[TaskSchema],status_code=status.HTTP_201_CREATED)
+@router.post('/create',response_model=TaskSchema,status_code=status.HTTP_201_CREATED)
 def create_task(body:TaskSchema,db:Session = Depends(get_db)):
     return controller.create_task(body,db)
 

@@ -15,18 +15,18 @@ def create_task(body:TaskSchema, db: Session = Depends(get_db)):
     db.add(task)
     db.commit()
     db.refresh(task)
-    return create_task(body,db)
+    return task
 
 
 def get_all_task(db: Session = Depends(get_db)):
     tasks = db.query(Task).all()
-    return get_all_task(db)
+    return tasks
 
 def get_one_task(id:int,db:Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return get_one_task(id,db)
+    return task
 
 def update_task(id:int,body:TaskSchema,db:Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == id).first()
@@ -37,7 +37,7 @@ def update_task(id:int,body:TaskSchema,db:Session = Depends(get_db)):
     task.status = body.status
     db.commit()
     db.refresh(task)
-    return update_task(id,body,db)
+    return task
 
 def delete_task(id:int,db:Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == id).first()
@@ -45,4 +45,4 @@ def delete_task(id:int,db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Task not found")
     db.delete(task)
     db.commit()
-    return delete_task(id,db)  
+    return task
