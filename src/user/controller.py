@@ -1,4 +1,4 @@
-from fastapi import Depends, status,HTTPException
+from fastapi import Depends, status,HTTPException,Request
 from sqlalchemy.orm import Session
 from src.user.dtos import User_Schema,Login_Schema
 from src.user.model import User
@@ -68,3 +68,49 @@ def login(body:Login_Schema,db:Session=Depends(get_db)):
     expire_time=datetime.utcnow() + timedelta(minutes=settings.EXP_TIME)
     token = jwt.encode({"user_id":user_exists.id, "exp":expire_time},settings.SECRET_KEY,algorithm=settings.ALGORITHM)
     return {"token":token}
+
+
+# token authetication
+
+
+
+def token_authetication(req:Request,db:Session=Depends(get_db)):
+    authorization: str = req.headers.get("Authorization")
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing"
+        )
+    
+    try:
+        # Handle "Bearer <token>" format or direct token
+        if authorization.startswith("Bearer "):
+            token = authorization.split(" ")[1]
+        else:
+            token = authorization
+            
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload"
+            )
+            
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
