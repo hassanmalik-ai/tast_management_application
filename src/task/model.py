@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from src.utils.db import Base
 
 class Task(Base):
@@ -7,5 +8,9 @@ class Task(Base):
     title = Column(String(255), nullable=False)
     description = Column(String(255), nullable=True)
     status = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"), onupdate="CASCADE")
+
+    user = relationship("User", back_populates="tasks")
+
 
 

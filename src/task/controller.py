@@ -3,14 +3,16 @@ from sqlalchemy.orm import Session
 from src.task.dtos import TaskSchema
 from src.task.model import Task
 from src.utils.db import get_db
+from src.user.model import User
 
 
-def create_task(body:TaskSchema, db: Session = Depends(get_db)):
+def create_task(body: TaskSchema, db: Session, user_id: int):
     data = body.model_dump()
     task = Task(
         title=data["title"],
         description=data["description"],
-        status=data["status"]
+        status=data["status"],
+        user_id=user_id
     )
     db.add(task)
     db.commit()
@@ -18,18 +20,18 @@ def create_task(body:TaskSchema, db: Session = Depends(get_db)):
     return task
 
 
-def get_all_task(db: Session = Depends(get_db)):
-    tasks = db.query(Task).all()
+def get_all_task(db: Session, user_id: int):
+    tasks = db.query(Task).filter(Task.user_id == user_id).all()
     return tasks
 
-def get_one_task(id:int,db:Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == id).first()
+def get_one_task(id: int, db: Session, user_id: int):
+    task = db.query(Task).filter(Task.id == id, Task.user_id == user_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     return task
 
-def update_task(id:int,body:TaskSchema,db:Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == id).first()
+def update_task(id: int, body: TaskSchema, db: Session, user_id: int):
+    task = db.query(Task).filter(Task.id == id, Task.user_id == user_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     task.title = body.title
@@ -39,8 +41,8 @@ def update_task(id:int,body:TaskSchema,db:Session = Depends(get_db)):
     db.refresh(task)
     return task
 
-def delete_task(id:int,db:Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == id).first()
+def delete_task(id: int, db: Session, user_id: int):
+    task = db.query(Task).filter(Task.id == id, Task.user_id == user_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     db.delete(task)
