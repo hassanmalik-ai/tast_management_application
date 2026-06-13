@@ -7,7 +7,7 @@ from pwdlib import PasswordHash
 import jwt
 from src.utils.settings import settings
 from datetime import datetime, timedelta
-
+from src.utils.mail import send_email
 
 EXP_TIME = 30
 
@@ -24,7 +24,7 @@ def verify_password(plain_password, hashed_password):
 
 ## Registration
 
-def register(body:User_Schema,db:Session=Depends(get_db)):
+async def register(body:User_Schema,db:Session=Depends(get_db)):
     user_exists=db.query(User).filter(User.username==body.username).first()
     if user_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="User already exists")
@@ -51,6 +51,10 @@ def register(body:User_Schema,db:Session=Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+## send email confirmation
+    res = await send_email([new_user.email])
+    print(res)
+
     return user
 
 

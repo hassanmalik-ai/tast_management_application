@@ -12,8 +12,8 @@ user_router = APIRouter(prefix="/users")
 
 
 @user_router.post("/register",status_code=status.HTTP_201_CREATED,response_model=User_Response_Schema)
-def Register_user(body:User_Schema,db:Session=Depends(get_db)):
-    return register(body,db)
+async def Register_user(body:User_Schema,db:Session=Depends(get_db)):
+    return await register(body,db)
 
 
 @user_router.post("/login",status_code=status.HTTP_200_OK)
