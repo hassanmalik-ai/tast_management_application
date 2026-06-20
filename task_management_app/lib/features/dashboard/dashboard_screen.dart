@@ -3,20 +3,24 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/mock_data/mock_data.dart';
+import '../tasks/providers/task_providers.dart';
+import '../../shared/models/task_model.dart';
 import 'widgets/stat_card.dart';
 import 'widgets/task_summary_card.dart';
 import 'widgets/weekly_chart.dart';
 import 'widgets/quick_actions.dart';
 
 /// Dashboard / Home screen with stats, tasks, chart, and quick actions.
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final user = MockData.user;
+    final tasksAsync = ref.watch(tasksProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -173,29 +177,59 @@ class DashboardScreen extends StatelessWidget {
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.5,
                   children: [
-                    StatCard(
-                      title: 'Completed',
-                      value: '${MockData.completedCount}',
-                      icon: Iconsax.tick_circle5,
-                      color: AppColors.success,
+                    tasksAsync.when(
+                      data: (tasks) {
+                        final completedCount = tasks.where((t) => t.status == TaskStatus.completed).length;
+                        return StatCard(
+                          title: 'Completed',
+                          value: '$completedCount',
+                          icon: Iconsax.tick_circle5,
+                          color: AppColors.success,
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => const SizedBox(),
                     ),
-                    StatCard(
-                      title: 'Pending',
-                      value: '${MockData.pendingCount}',
-                      icon: Iconsax.clock5,
-                      color: AppColors.warning,
+                    tasksAsync.when(
+                      data: (tasks) {
+                        final pendingCount = tasks.where((t) => t.status != TaskStatus.completed && t.status != TaskStatus.overdue).length;
+                        return StatCard(
+                          title: 'Pending',
+                          value: '$pendingCount',
+                          icon: Iconsax.clock5,
+                          color: AppColors.warning,
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => const SizedBox(),
                     ),
-                    StatCard(
-                      title: 'Overdue',
-                      value: '${MockData.overdueCount}',
-                      icon: Iconsax.danger5,
-                      color: AppColors.error,
+                    tasksAsync.when(
+                      data: (tasks) {
+                        final overdueCount = tasks.where((t) => t.status == TaskStatus.overdue).length;
+                        return StatCard(
+                          title: 'Overdue',
+                          value: '$overdueCount',
+                          icon: Iconsax.danger5,
+                          color: AppColors.error,
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => const SizedBox(),
                     ),
-                    StatCard(
-                      title: 'Productivity',
-                      value: '${MockData.productivityScore.toInt()}%',
-                      icon: Iconsax.chart_15,
-                      color: AppColors.primaryLight,
+                    tasksAsync.when(
+                      data: (tasks) {
+                        final completedCount = tasks.where((t) => t.status == TaskStatus.completed).length;
+                        final total = tasks.length;
+                        final score = total == 0 ? 0 : (completedCount / total * 100).toInt();
+                        return StatCard(
+                          title: 'Productivity',
+                          value: '$score%',
+                          icon: Iconsax.chart_15,
+                          color: AppColors.primaryLight,
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (_, __) => const SizedBox(),
                     ),
                   ]
                       .animate(interval: 100.ms)
@@ -240,16 +274,19 @@ class DashboardScreen extends StatelessWidget {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                  itemCount: MockData.todaysTasks.length > 0
-                      ? MockData.todaysTasks.length
-                      : MockData.tasks.take(4).length,
+                  itemCount: tasksAsync.when(
+                    data: (tasks) => tasks.take(4).length,
+                    loading: () => 0,
+                    error: (_, __) => 0,
+                  ),
                   itemBuilder: (context, index) {
-                    final tasks = MockData.todaysTasks.length > 0
-                        ? MockData.todaysTasks
-                        : MockData.tasks.take(4).toList();
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: TaskSummaryCard(task: tasks[index]),
+                    return tasksAsync.when(
+                      data: (tasks) => Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: TaskSummaryCard(task: tasks[index]),
+                      ),
+                      loading: () => const SizedBox(),
+                      error: (_, __) => const SizedBox(),
                     );
                   },
                 ),

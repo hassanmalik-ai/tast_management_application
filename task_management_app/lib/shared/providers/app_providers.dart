@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Provider for managing the current theme mode (light/dark).
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
@@ -18,3 +19,8 @@ final onboardingCompleteProvider = StateProvider<bool>((ref) => false);
 
 /// Provider to track if user is "logged in" (UI state only).
 final isLoggedInProvider = StateProvider<bool>((ref) => false);
+
+/// Provider for SharedPreferences
+final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError();
+});

@@ -5,8 +5,12 @@ import 'core/theme/app_theme.dart';
 import 'core/routes/app_router.dart';
 import 'shared/providers/app_providers.dart';
 
-void main() {
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final sharedPreferences = await SharedPreferences.getInstance();
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -25,8 +29,11 @@ void main() {
   ]);
 
   runApp(
-    const ProviderScope(
-      child: TaskifyApp(),
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      ],
+      child: const TaskifyApp(),
     ),
   );
 }

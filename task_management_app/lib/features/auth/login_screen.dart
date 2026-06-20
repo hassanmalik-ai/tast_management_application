@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import 'widgets/social_login_button.dart';
+import 'repositories/auth_repository.dart';
 
 /// Login screen with email/password, social login, and remember me option.
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -77,11 +80,39 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: AppConstants.spacingXxl),
 
               // Login button
-              AppButton(
-                label: 'Log In',
-                variant: AppButtonVariant.gradient,
-                onPressed: () => context.go('/'),
-              ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : AppButton(
+                      label: 'Log In',
+                      variant: AppButtonVariant.gradient,
+                      onPressed: () async {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        try {
+                          final repo = ref.read(authRepositoryProvider);
+                          final success = await repo.login(
+                            _emailController.text, 
+                            _passwordController.text
+                          );
+                          if (success && mounted) {
+                            context.go('/');
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Login Failed: ${e.toString()}')),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        }
+                      },
+                    ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
 
               const SizedBox(height: AppConstants.spacingXxl),
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'repositories/auth_repository.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,19 +10,20 @@ import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 
 /// Register screen with full name, email, password, and confirm password.
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _agreedToTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -179,11 +182,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: AppConstants.spacingXxl),
 
               // Create Account button
-              AppButton(
-                label: 'Create Account',
-                variant: AppButtonVariant.gradient,
-                onPressed: () => context.go('/'),
-              ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : AppButton(
+                      label: 'Create Account',
+                      variant: AppButtonVariant.gradient,
+                      onPressed: () async {
+                        if (!_agreedToTerms) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please agree to terms')),
+                          );
+                          return;
+                        }
+                        if (_passwordController.text != _confirmPasswordController.text) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Passwords do not match')),
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        try {
+                          final repo = ref.read(authRepositoryProvider);
+                          final success = await repo.register(
+                            _nameController.text,
+                            _emailController.text.split('@')[0], // username fallback
+                            _emailController.text,
+                            '0000000000', // phone fallback
+                            _passwordController.text
+                          );
+                          if (success && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Registration successful, please login')),
+                            );
+                            context.pop();
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Registration Failed: ${e.toString()}')),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        }
+                      },
+                    ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
 
               const SizedBox(height: AppConstants.spacingXxl),
 
