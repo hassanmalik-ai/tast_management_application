@@ -24,6 +24,7 @@ def upgrade() -> None:
     op.alter_column('tasks', 'status',
                existing_type=sa.VARCHAR(length=255),
                type_=sa.Boolean(),
+               postgresql_using='status::boolean',
                nullable=True)
     op.drop_constraint(op.f('fk_tasks_user_id_users'), 'tasks', type_='foreignkey')
     op.create_foreign_key(None, 'tasks', 'users', ['user_id'], ['id'])
